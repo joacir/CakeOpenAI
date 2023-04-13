@@ -4,7 +4,7 @@ CakeOpenAI plugin integrates CakePHP with OpenAI API using [OpenAI API Client in
 ## Install
 Install it as require dependency:
 ```
-composer require joacir/CakeOpenAI
+composer require joacir/cake-open-a-i
 ```
 
 ## Setup
