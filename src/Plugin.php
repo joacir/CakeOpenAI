@@ -13,7 +13,7 @@ use Cake\Routing\RouteBuilder;
 /**
  * Plugin for CakeOpenAI
  */
-class CakeOpenAIPlugin extends BasePlugin
+class Plugin extends BasePlugin
 {
     /**
      * Load all the plugin configuration and bootstrap logic.
