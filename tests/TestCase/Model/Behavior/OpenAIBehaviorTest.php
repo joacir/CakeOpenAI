@@ -30,8 +30,9 @@ class OpenAIBehaviorTest extends TestCase
         parent::setUp();
 
         Configure::write('OpenAI', [
-            'apiKey' => '1f8-089vsvadasdvasdvsa',
-            'organizationID' => 'org-v56a4s6v4a6sd5v46a5sdv65',
+            /**
+             * PUT CREDENTIALS HERE
+             */
         ]);
         $table = new Table();
         $this->OpenAI = new OpenAIBehavior($table);
@@ -153,4 +154,222 @@ class OpenAIBehaviorTest extends TestCase
 
         $this->assertNotEmpty($responses['data'][0]['url']);
     }
+
+    public function testCreateThread(): void
+    {
+        $messages = [
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => 'Hello, what is AI?',
+                    'file_ids' => [],
+                ],
+            ],
+        ];
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('createThread')
+            ->willReturn(json_encode([
+                'id' => 'thread_Vnh93IHmBaJ4TLNCIjT1hleh',
+                'object' => 'thread',
+                'created_at' => 1729195060,
+                'metadata' => [],
+            ]));
+
+        $responses = $this->OpenAI->createThread($messages);
+
+        $this->assertEquals('thread_Vnh93IHmBaJ4TLNCIjT1hleh', $responses['id']);
+    }
+
+    public function testCreateThreadMessage(): void
+    {
+        $threadId = 'thread_Vnh93IHmBaJ4TLNCIjT1hleh';
+        $message = [
+            'role' => 'user',
+            'content' => 'How does AI work? Explain it in simple terms.',
+        ];
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('createThreadMessage')
+            ->willReturn(json_encode([
+                'id' => 'msg_5PFLCttYzxUUwdC6LHhQkl9L',
+                'object' => 'thread.message',
+                'created_at' => 1729195577,
+                'assistant_id' => null,
+                'thread_id' => 'thread_Vnh93IHmBaJ4TLNCIjT1hleh',
+                'run_id' => null,
+                'role' => 'user',
+                'content' => [
+                  [
+                    'type' => 'text',
+                    'text' => [
+                      'value' => 'How does AI work? Explain it in simple terms.',
+                      'annotations' => []
+                    ]
+                  ]
+                ],
+                'file_ids' => [],
+                'metadata' => [],
+            ]));
+
+        $responses = $this->OpenAI->createThreadMessage($threadId, $message);
+
+        $this->assertEquals('msg_5PFLCttYzxUUwdC6LHhQkl9L', $responses['id']);
+    }
+
+    public function testCreateThreadAndRun(): void
+    {
+        $data = [
+            'assistant_id' => 'asst_NKNVahV0IzggZWSSKEr3XFhh',
+            'thread' => [
+                'messages' => [
+                    [
+                        'role' => 'user',
+                        'content' => '1 Software supimpa por R$ 20.000,00 para o José da Esquina',
+                    ],
+                ],
+            ],
+        ];
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('createThreadAndRun')
+            ->willReturn(json_encode([
+                'id' => 'run_JMvrnuDvdYiUdB4mfKXN0Nsd',
+                'object' => 'thread.run',
+                'created_at' => 1729198026,
+                'assistant_id' => 'asst_NKNVahV0IzggZWSSKEr3XFhh',
+                'thread_id' => 'thread_YFODhuL0VzQRohgxQrILotss',
+                'status' => 'queued',
+                'started_at' => null,
+                'expires_at' => 1729198626,
+                'cancelled_at' => null,
+                'failed_at' => null,
+                'completed_at' => null,
+                'required_action' => null,
+                'last_error' => null,
+                'model' => 'gpt-4o-mini',
+                'instructions' => 'Agir como se fosse um assistente gerador de orçamento comercial.',
+                'tools' => [],
+                'tool_resources' => [],
+                'metadata' => [],
+                'temperature' => 1,
+                'top_p' => 1,
+                'max_completion_tokens' => null,
+                'max_prompt_tokens' => null,
+                'truncation_strategy' => [
+                    'type' => 'auto',
+                    'last_messages' => null,
+                ],
+                'incomplete_details' => null,
+                'usage' => null,
+                'response_format' => 'auto',
+                'tool_choice' => 'auto',
+                'parallel_tool_calls' => true,
+            ]));
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('retrieveRun')
+            ->willReturn(json_encode([
+                'id' => 'run_JMvrnuDvdYiUdB4mfKXN0Nsd',
+                'object' => 'thread.run',
+                'created_at' => 1729198026,
+                'assistant_id' => 'asst_NKNVahV0IzggZWSSKEr3XFhh',
+                'thread_id' => 'thread_YFODhuL0VzQRohgxQrILotss',
+                'status' => 'completed',
+                'started_at' => null,
+                'expires_at' => 1729198626,
+                'cancelled_at' => null,
+                'failed_at' => null,
+                'completed_at' => 1729513021,
+                'required_action' => null,
+                'last_error' => null,
+                'model' => 'gpt-4o-mini',
+                'instructions' => 'Agir como se fosse um assistente gerador de orçamento comercial.',
+                'tools' => [],
+                'tool_resources' => [],
+                'metadata' => [],
+                'temperature' => 1,
+                'top_p' => 1,
+                'max_completion_tokens' => null,
+                'max_prompt_tokens' => null,
+                'truncation_strategy' => [
+                    'type' => 'auto',
+                    'last_messages' => null,
+                ],
+                'incomplete_details' => null,
+                'usage' => null,
+                'response_format' => 'auto',
+                'tool_choice' => 'auto',
+                'parallel_tool_calls' => true,
+            ]));
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('listThreadMessages')
+            ->willReturn(json_encode([
+                'object' => 'list',
+                'data' => [
+                    [
+                        'id' => 'msg_2fM7yiAGTU6R6bWtr87nriZy',
+                        'object' => 'thread.message',
+                        'created_at' => 1729513020,
+                        'assistant_id' => 'asst_NKNVahV0IzggZWSSKEr3XFhh',
+                        'thread_id' => 'thread_okFEvZppFKNQlnAdxj1sALyd',
+                        'run_id' => 'run_C8MMMxkRGoOf63DN6RHTdm4j',
+                        'role' => 'assistant',
+                        'content' => [
+                            [
+                                'type' => 'text',
+                                'text' => [
+                                    'value' => '{"cliente":{"nome": "José da Esquina"},"orcamento_items":[{"produto":{"descricao":"Software supimpa"},"quantidade":1,"preco_unitario": 20000,"valor_total":20000}]}',
+                                    'annotations' => [],
+                                ],
+                            ],
+                        ],
+                        'attachments' => [],
+                        'metadata' => []
+                    ],
+                    [
+                        'id' => 'msg_Xjr4yxAl2R0LgLMsxEbB3n2d',
+                        'object' => 'thread.message',
+                        'created_at' => 1729513019,
+                        'assistant_id' => null,
+                        'thread_id' => 'thread_okFEvZppFKNQlnAdxj1sALyd',
+                        'run_id' => null,
+                        'role' => 'user',
+                        'content' => [
+                            [
+                                'type' => 'text',
+                                'text' => [
+                                    'value' => '1 Software supimpa por R$ 20.000,00 para o José da Esquina',
+                                    'annotations' => [],
+                                ],
+                            ],
+                        ],
+                        'attachments' => [],
+                        'metadata' => []
+                    ]
+                ],
+                'first_id' => 'msg_2fM7yiAGTU6R6bWtr87nriZy',
+                'last_id' => 'msg_Xjr4yxAl2R0LgLMsxEbB3n2d',
+                'has_more' => false
+            ]));
+
+        $responses = $this->OpenAI->createThreadAndRun($data);
+
+        $expected = '{"cliente":{"nome": "José da Esquina"},"orcamento_items":[{"produto":{"descricao":"Software supimpa"},"quantidade":1,"preco_unitario": 20000,"valor_total":20000}]}';
+        $this->assertEquals($expected, $responses['data'][0]['content'][0]['text']['value']);
+    }
+
 }

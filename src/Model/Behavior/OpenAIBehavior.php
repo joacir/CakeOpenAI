@@ -97,6 +97,74 @@ class OpenAIBehavior extends Behavior
         return $responses;
     }
 
+    public function createThread(array $messages): array
+    {
+        if (count($messages) === 0 || !isset($this->openAI)) {
+            return [];
+        }
+
+        try {
+            $thread = $this->openAI->createThread($messages);
+            $responses = is_string($thread) ? (array)json_decode($thread, true) : [];
+        } catch (Exception $e) {
+            return [];
+        }
+
+        return $responses;
+    }
+
+    public function createThreadAndRun(array $data): array
+    {
+        if (count($data) === 0 || !isset($this->openAI)) {
+            return [];
+        }
+
+        try {
+            $this->openAI->setAssistantsBetaVersion('v2');
+            $run = $this->openAI->createThreadAndRun($data);
+            $responses = is_string($run) ? (array)json_decode($run, true) : [];
+            if (!isset($responses['id']) || !isset($responses['thread_id'])) {
+                return [];
+            }
+
+            $tries = 0;
+            do {
+                sleep(1);
+                $run = $this->openAI->retrieveRun($responses['thread_id'], $responses['id']);
+                $responses = is_string($run) ? (array)json_decode($run, true) : [];
+                $tries++;
+            } while (
+                $tries < 3 &&
+                count($responses) > 0 &&
+                $responses['status'] !== 'completed'
+            );
+            if ($responses['status'] === 'completed') {
+                $responses = $this->openAI->listThreadMessages($responses['thread_id']);
+                $responses = is_string($responses) ? (array)json_decode($responses, true) : [];
+            }
+        } catch (Exception $e) {
+            return [];
+        }
+
+        return $responses;
+    }
+
+    public function createThreadMessage(string $threadId, array $message): array
+    {
+        if (count($message) === 0 || !isset($this->openAI) || !isset($threadId)) {
+            return [];
+        }
+
+        try {
+            $created = $this->openAI->createThreadMessage($threadId, $message);
+            $responses = is_string($created) ? (array)json_decode($created, true) : [];
+        } catch (Exception $e) {
+            return [];
+        }
+
+        return $responses;
+    }
+
     public function getChatConfig(): array
     {
         return is_array($this->_defaultConfig['chat']) ? $this->_defaultConfig['chat'] : [];
