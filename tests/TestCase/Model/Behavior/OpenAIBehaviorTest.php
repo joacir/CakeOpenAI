@@ -30,8 +30,8 @@ class OpenAIBehaviorTest extends TestCase
         parent::setUp();
 
         Configure::write('OpenAI', [
-            'apiKey' => 'sk-12810928109820198201980198',
-            'organizationID' => 'org-dasdjlaksjdlkasjdlkasjd',
+            'apiKey' => 'PUT API KEY',
+            'organizationID' => 'PUT ORGANIZATION ID',
         ]);
         $table = new Table();
         $this->OpenAI = new OpenAIBehavior($table);
