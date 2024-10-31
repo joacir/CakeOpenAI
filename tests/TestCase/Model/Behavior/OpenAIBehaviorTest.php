@@ -30,8 +30,9 @@ class OpenAIBehaviorTest extends TestCase
         parent::setUp();
 
         Configure::write('OpenAI', [
-            'apiKey' => 'PUT API KEY',
-            'organizationID' => 'PUT ORGANIZATION ID',
+            /**
+             * PUT CREDENTIALS HERE
+             */
         ]);
         $table = new Table();
         $this->OpenAI = new OpenAIBehavior($table);
