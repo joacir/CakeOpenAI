@@ -30,8 +30,8 @@ class OpenAIBehaviorTest extends TestCase
         parent::setUp();
 
         Configure::write('OpenAI', [
-            'apiKey' => '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',
-            'organizationID' => 'org-AnmHQ45wTHWqPVaI9fWsPxH0',
+            'apiKey' => 'sk-12810928109820198201980198',
+            'organizationID' => 'org-dasdjlaksjdlkasjdlkasjd',
         ]);
         $table = new Table();
         $this->OpenAI = new OpenAIBehavior($table);
