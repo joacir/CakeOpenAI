@@ -74,6 +74,14 @@ class OpenAIBehaviorTest extends TestCase
         ];
         $this->OpenAI->setImageConfig($config);
         $this->assertEquals($config, $this->OpenAI->getImageConfig());
+
+        $config = [
+            'model' => 'whisper-2',
+            'response_format' => 'text',
+            'language' => 'en',
+        ];
+        $this->OpenAI->setTranscribeConfig($config);
+        $this->assertEquals($config, $this->OpenAI->getTranscribeConfig());
     }
 
     public function testChat(): void
@@ -370,6 +378,79 @@ class OpenAIBehaviorTest extends TestCase
 
         $expected = '{"cliente":{"nome": "José da Esquina"},"orcamento_items":[{"produto":{"descricao":"Software supimpa"},"quantidade":1,"preco_unitario": 20000,"valor_total":20000}]}';
         $this->assertEquals($expected, $responses['data'][0]['content'][0]['text']['value']);
+    }
+
+    public function testTranscribe(): void
+    {
+        $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cakeopenai_test_' . uniqid('', true) . '.wav';
+        file_put_contents($tmpPath, 'fake-audio-bytes');
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('transcribe')
+            ->willReturn(json_encode(['text' => 'olá mundo']));
+
+        try {
+            $text = $this->OpenAI->transcribe($tmpPath);
+        } finally {
+            @unlink($tmpPath);
+        }
+
+        $this->assertEquals('olá mundo', $text);
+    }
+
+    public function testTranscribeArquivoInexistente(): void
+    {
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->never())
+            ->method('transcribe');
+
+        $text = $this->OpenAI->transcribe(sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'inexistente_' . uniqid('', true) . '.mp3');
+
+        $this->assertEquals('', $text);
+    }
+
+    public function testTranscribeSemOpenAI(): void
+    {
+        $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cakeopenai_test_' . uniqid('', true) . '.wav';
+        file_put_contents($tmpPath, 'fake-audio-bytes');
+
+        // Sem apiKey configurada — $this->openAI nao existe.
+        try {
+            $text = $this->OpenAI->transcribe($tmpPath);
+        } finally {
+            @unlink($tmpPath);
+        }
+
+        $this->assertEquals('', $text);
+    }
+
+    public function testTranscribeComExcecao(): void
+    {
+        $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'cakeopenai_test_' . uniqid('', true) . '.wav';
+        file_put_contents($tmpPath, 'fake-audio-bytes');
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('transcribe')
+            ->willThrowException(new \Exception('boom'));
+
+        try {
+            $text = $this->OpenAI->transcribe($tmpPath);
+        } finally {
+            @unlink($tmpPath);
+        }
+
+        $this->assertEquals('', $text);
     }
 
 }
