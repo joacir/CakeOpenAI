@@ -5,6 +5,7 @@ namespace CakeOpenAI\Model\Behavior;
 
 use Cake\Core\Configure;
 use Cake\ORM\Behavior;
+use CURLFile;
 use Exception;
 use Orhanerday\OpenAi\OpenAi;
 
@@ -30,6 +31,11 @@ class OpenAIBehavior extends Behavior
             'n' => 1,
             'size' => '1024x1024',
             'response_format' => 'url',
+        ],
+        'transcribe' => [
+            'model' => 'whisper-1',
+            'response_format' => 'json',
+            'language' => 'pt',
         ],
     ];
 
@@ -165,6 +171,33 @@ class OpenAIBehavior extends Behavior
         return $responses;
     }
 
+    /**
+     * Send an audio file to Whisper and return the transcribed text.
+     *
+     * @param string $filePath absolute path to the audio file
+     * @param array<string, mixed> $overrides config overrides merged with the default transcribe config
+     * @return string transcribed text, or empty string on failure
+     */
+    public function transcribe(string $filePath, array $overrides = []): string
+    {
+        if (!isset($this->openAI) || !is_file($filePath)) {
+            return '';
+        }
+
+        $opts = array_merge($this->getTranscribeConfig(), $overrides);
+        $opts['file'] = new CURLFile($filePath);
+        try {
+            $response = $this->openAI->transcribe($opts);
+            $decoded = is_string($response) ? (array)json_decode($response, true) : [];
+        } catch (Exception $e) {
+            return '';
+        }
+
+        $text = $decoded['text'] ?? '';
+
+        return is_string($text) ? $text : '';
+    }
+
     public function getChatConfig(): array
     {
         return is_array($this->_defaultConfig['chat']) ? $this->_defaultConfig['chat'] : [];
@@ -175,6 +208,11 @@ class OpenAIBehavior extends Behavior
         return is_array($this->_defaultConfig['image']) ? $this->_defaultConfig['image'] : [];
     }
 
+    public function getTranscribeConfig(): array
+    {
+        return is_array($this->_defaultConfig['transcribe']) ? $this->_defaultConfig['transcribe'] : [];
+    }
+
     public function setChatConfig(array $config): void
     {
         $this->_defaultConfig['chat'] = $config;
@@ -183,5 +221,10 @@ class OpenAIBehavior extends Behavior
     public function setImageConfig(array $config): void
     {
         $this->_defaultConfig['image'] = $config;
+    }
+
+    public function setTranscribeConfig(array $config): void
+    {
+        $this->_defaultConfig['transcribe'] = $config;
     }
 }

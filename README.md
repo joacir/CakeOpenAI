@@ -67,6 +67,22 @@ $responses = $this->image($prompt);
 echo $responses['data'][0]['url'];
 ```
 
+### Transcribe
+
+To transcribe an audio file into text with Whisper, pass the path of a local audio file:
+```
+$text = $this->transcribe('/path/to/audio.wav');
+
+echo $text;
+```
+
+It returns the transcribed text, or an empty string when the file does not exist or the API call fails. Supported formats follow the [Whisper API](https://platform.openai.com/docs/api-reference/audio/createTranscription) (mp3, mp4, mpeg, mpga, m4a, wav, webm) with a 25 MB limit per file.
+
+You can override the default settings per call without changing the behavior configuration:
+```
+$text = $this->transcribe('/path/to/audio.wav', ['language' => 'en']);
+```
+
 ### Configurations
 
 You can change the defaults configurations of chat and image creation, according to the [OpenAI API Reference](https://platform.openai.com/docs/api-reference):
@@ -83,5 +99,11 @@ $this->setImageConfig([
     'n' => 1,
     'size' => '1024x1024',
     'response_format' => 'url',
+]);
+
+$this->setTranscribeConfig([
+    'model' => 'whisper-1',
+    'response_format' => 'json',
+    'language' => 'pt',
 ]);
 ```
