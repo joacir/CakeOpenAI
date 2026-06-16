@@ -163,6 +163,85 @@ class OpenAIBehaviorTest extends TestCase
         $this->assertNotEmpty($responses['data'][0]['url']);
     }
 
+    public function testResponse(): void
+    {
+        $opts = [
+            'prompt' => [
+                'id' => 'pmpt_6a04846cfe9081978bf4dda4558f1ae806ca4e231f076fa5',
+                'version' => '1',
+            ],
+            'input' => '1 Software supimpa por R$ 20.000,00 para o José da Esquina',
+        ];
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('response')
+            ->willReturn(json_encode([
+                'id' => 'resp_abc123',
+                'object' => 'response',
+                'status' => 'completed',
+                'output' => [
+                    [
+                        'id' => 'msg_abc123',
+                        'type' => 'message',
+                        'role' => 'assistant',
+                        'content' => [
+                            [
+                                'type' => 'output_text',
+                                'text' => '{"cliente":{"nome": "José da Esquina"},"orcamento_items":[{"produto":{"descricao":"Software supimpa"},"quantidade":1,"preco_unitario": 20000,"valor_total":20000}]}',
+                                'annotations' => [],
+                            ],
+                        ],
+                    ],
+                ],
+            ]));
+
+        $responses = $this->OpenAI->response($opts);
+
+        $expected = '{"cliente":{"nome": "José da Esquina"},"orcamento_items":[{"produto":{"descricao":"Software supimpa"},"quantidade":1,"preco_unitario": 20000,"valor_total":20000}]}';
+        $this->assertEquals($expected, $responses['output'][0]['content'][0]['text']);
+    }
+
+    public function testResponseVazio(): void
+    {
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->never())
+            ->method('response');
+
+        $responses = $this->OpenAI->response([]);
+
+        $this->assertEquals([], $responses);
+    }
+
+    public function testResponseComExcecao(): void
+    {
+        $opts = [
+            'prompt' => [
+                'id' => 'pmpt_6a04846cfe9081978bf4dda4558f1ae806ca4e231f076fa5',
+                'version' => '1',
+            ],
+            'input' => '1 Software supimpa por R$ 20.000,00 para o José da Esquina',
+        ];
+
+        $this->OpenAI->openAI = $this->getMockBuilder('\Orhanerday\OpenAi\OpenAi')
+            ->disableOriginalConstructor()
+            ->getMock();
+        $this->OpenAI->openAI
+            ->expects($this->once())
+            ->method('response')
+            ->willThrowException(new \Exception('boom'));
+
+        $responses = $this->OpenAI->response($opts);
+
+        $this->assertEquals([], $responses);
+    }
+
     public function testCreateThread(): void
     {
         $messages = [
