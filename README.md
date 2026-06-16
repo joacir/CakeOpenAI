@@ -67,6 +67,53 @@ $responses = $this->image($prompt);
 echo $responses['data'][0]['url'];
 ```
 
+### Response
+
+To use the [Responses API](https://platform.openai.com/docs/api-reference/responses) (the recommended replacement for the Chat Completions and Assistants APIs), pass an options array with the request parameters:
+```
+$responses = $this->response([
+    'model' => 'gpt-4o',
+    'input' => 'Who won the world series in 2020?',
+]);
+
+echo $responses['output'][0]['content'][0]['text'];
+```
+
+The `input` may also be a list of messages, allowing multi-turn conversations and system instructions:
+```
+$responses = $this->response([
+    'model' => 'gpt-4o',
+    'instructions' => 'You are a helpful assistant.',
+    'input' => [
+        [
+            'role' => 'user',
+            'content' => 'Who won the world series in 2020?',
+        ],
+        [
+            'role' => 'assistant',
+            'content' => 'The Los Angeles Dodgers won the World Series in 2020.',
+        ],
+        [
+            'role' => 'user',
+            'content' => 'Where was it played?',
+        ],
+    ],
+]);
+```
+
+You can continue a previous conversation by passing the id returned in the previous response:
+```
+$responses = $this->response([
+    'model' => 'gpt-4o',
+    'previous_response_id' => $previousId,
+    'input' => 'And who was the MVP?',
+]);
+```
+
+The method returns the decoded API response as an array, or an empty array when no options are given or the API call fails. Any parameter supported by the [Responses API](https://platform.openai.com/docs/api-reference/responses/create) (such as `temperature`, `max_output_tokens`, `tools` or `instructions`) can be included in the options array.
+
+> **Note:** The previous Assistants-based methods (`createThread()`, `createThreadAndRun()` and `createThreadMessage()`) are deprecated and have been superseded by `response()`.
+
 ### Transcribe
 
 To transcribe an audio file into text with Whisper, pass the path of a local audio file:
