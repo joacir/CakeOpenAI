@@ -103,6 +103,31 @@ class OpenAIBehavior extends Behavior
         return $responses;
     }
 
+    /**
+     * Send a request to the Responses API and return the decoded response.
+     *
+     * @param array $opts options for the Responses API request
+     * @return array $responses responses from the Responses API
+     */
+    public function response(array $opts): array
+    {
+        if (count($opts) === 0 || !isset($this->openAI)) {
+            return [];
+        }
+
+        try {
+            $response = $this->openAI->response($opts);
+            $responses = is_string($response) ? (array)json_decode($response, true) : [];
+        } catch (Exception $e) {
+            return [];
+        }
+
+        return $responses;
+    }
+
+    /**
+     * @deprecated Substituido pelo Responses API (response()).
+     */
     public function createThread(array $messages): array
     {
         if (count($messages) === 0 || !isset($this->openAI)) {
@@ -119,6 +144,9 @@ class OpenAIBehavior extends Behavior
         return $responses;
     }
 
+    /**
+     * @deprecated Substituido pelo Responses API (response()).
+     */
     public function createThreadAndRun(array $data): array
     {
         if (count($data) === 0 || !isset($this->openAI)) {
@@ -155,6 +183,9 @@ class OpenAIBehavior extends Behavior
         return $responses;
     }
 
+    /**
+     * @deprecated Substituido pelo Responses API (response()).
+     */
     public function createThreadMessage(string $threadId, array $message): array
     {
         if (count($message) === 0 || !isset($this->openAI) || !isset($threadId)) {
